@@ -22,7 +22,22 @@ class Web_Scraper:
         element = self.driver.find_element_by_xpath("/html/body/div[2]/div[2]/main/div[2]/div[1]/section/button")
         element.click()
 
+    def get_Links(self):
+        time.sleep(3)
+        prod_container = self.driver.find_element_by_xpath('//*[@class="Styles__Grid-sc-1hr3n2q-0 ekxOoE"]') # XPath corresponding to the Container
+        prod_list = prod_container.find_elements_by_xpath('./article')
+        link_list = []
+
+        for product in prod_list:
+            a_tag = product.find_element_by_tag_name('a')
+            link = a_tag.get_attribute('href')
+            link_list.append(link)
+    
+        print(f'There are {len(link_list)} Products on this page')
+        print(link_list)
+
 if __name__ == '__main__':
     test = Web_Scraper()
     test.accept_Cookies()
     #test.navigate_WebPage()
+    test.get_Links()
