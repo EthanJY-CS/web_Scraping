@@ -38,6 +38,7 @@ class Web_Scraper:
                 time.sleep(2)
                 self.driver.execute_script("window.scrollTo(0, (document.body.scrollHeight) - 1200);")
                 load_More_Button.click()
+        self.driver.execute_script("window.scrollTo(0, 0);")
 
     def get_product_types(self):
         delay = 10
@@ -65,7 +66,7 @@ class Web_Scraper:
         print(link_list)
         return link_list
 
-    def generate_ID(link_list):
+    def generate_ID(self, link_list):
         id_list = []
         uuid_list = []
         for link in link_list:
@@ -73,7 +74,22 @@ class Web_Scraper:
             id_list.append(link[idx:len(link)])
             uuid_list.append(str(uuid.uuid4()))
         return id_list, uuid_list
-            
+    
+    def scrape_Data(self):
+        pass
+
+    def load_Product_Links(self, link_list):
+        window_before = self.driver.window_handles[0]
+        self.driver.execute_script("window.open()")
+        for link in link_list:
+            window_after = self.driver.window_handles[1]
+            self.driver.switch_to.window(window_after)
+            self.driver.get(link)
+            self.driver.close()
+            time.sleep(3)
+            break
+        self.driver.switch_to.window(window_before)
+
     def start_crawl(self):
         self.accept_Cookies()
         product_Type_Button, checkbox_list = self.get_product_types()
@@ -84,7 +100,7 @@ class Web_Scraper:
             self.load_More_Products()
             link_list = self.get_Product_Links()
             id_list, uuid_list = self.generate_ID(link_list)
-            self.driver.execute_script("window.scrollTo(0, 0);")
+            self.load_Product_Links(link_list)
             product_Type_Button.click()
             time.sleep(2)
             checkbox.click()
