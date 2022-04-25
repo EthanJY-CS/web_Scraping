@@ -1,4 +1,5 @@
 from math import prod
+from tabnanny import check
 from selenium import webdriver
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
@@ -79,7 +80,10 @@ class Web_Scraper:
         image_list = images_container.find_elements_by_xpath('.//*[@class="Styles__Image-sc-176u4ag-1 etChzz"]')
         image_links = []
         for image in image_list:
-            img_tag = image.find_element_by_tag_name('img')
+            try:
+                img_tag = image.find_element_by_tag_name('img')
+            except:
+                pass
             link = img_tag.get_attribute('src')
             image_links.append(link)
     
@@ -125,18 +129,20 @@ class Web_Scraper:
         self.accept_Cookies()
         product_Type_Button, checkbox_list = self.get_product_types()
         for checkbox in checkbox_list:
-            checkbox.click()
-            product_Type_Button.click()
-            self.load_More_Products()
-            link_list = self.get_Product_Links()
-            self.load_Product_Links(link_list)
-            product_Type_Button.click()
-            checkbox.click()
+            product_Type = checkbox.get_attribute('id')
+            if product_Type != 'Accessories': #In case of womens catalogue, they added accessories as a clothing type for some reason, so we ignore this
+                checkbox.click()
+                product_Type_Button.click()
+                self.load_More_Products()
+                link_list = self.get_Product_Links()
+                self.load_Product_Links(link_list)
+                product_Type_Button.click()
+                checkbox.click()
 
 if __name__ == '__main__':
     mens_URL = "https://uk.gymshark.com/collections/all-products/mens"
     womens_URL = "https://uk.gymshark.com/collections/all-products/womens"
-    mens_Catalogue = Web_Scraper(mens_URL)
-    mens_Catalogue.start_crawl()
-    #womens_Catalogue = Web_Scraper(womens_URL)
-    #womens_Catalogue.start_crawl()
+    #mens_Catalogue = Web_Scraper(mens_URL)
+    #mens_Catalogue.start_crawl()
+    womens_Catalogue = Web_Scraper(womens_URL)
+    womens_Catalogue.start_crawl()
