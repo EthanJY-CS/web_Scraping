@@ -38,7 +38,7 @@ class Web_Scraper:
         delay = 10
         try:
             WebDriverWait(self.driver, delay).until(EC.presence_of_element_located((By.XPATH, '//*[@id="collections"]')))
-            catagory_container = self.driver.find_element_by_xpath('//*[@id="collections"]') # XPath corresponding to the Container
+            catagory_container = self.driver.find_element_by_xpath('//*[@id="collections"]')
             product_Type_Button = catagory_container.find_element_by_xpath('./button')
             product_Type_Button.click()
         except TimeoutException:
@@ -49,7 +49,7 @@ class Web_Scraper:
         return product_Type_Button, checkbox_list
 
     def get_Product_Links(self):
-        prod_container = self.driver.find_element_by_xpath('//*[@class="Styles__Grid-sc-1hr3n2q-0 ekxOoE"]') # XPath corresponding to the Container
+        prod_container = self.driver.find_element_by_xpath('//*[@class="Styles__Grid-sc-1hr3n2q-0 ekxOoE"]')
         prod_list = prod_container.find_elements_by_xpath('./article')
         link_list = []
         for product in prod_list:
@@ -57,7 +57,6 @@ class Web_Scraper:
             link = a_tag.get_attribute('href')
             link_list.append(link)
         print(f'There are {len(link_list)} Products on this page')
-        #print(link_list)
         return link_list
 
     def generate_ID(self, link):
@@ -121,8 +120,8 @@ class Web_Scraper:
             self.driver.switch_to.window(window_after)
             self.driver.get(link)
             self.scrape_Data(link)
-            self.driver.close()
-            break #Take this out When we want to scrape all the links not just 1 per product type ##Testing purposes!
+            #break #Take this out When we want to scrape all the links not just 1 per product type ##Testing purposes!
+        self.driver.close()
         self.driver.switch_to.window(window_before)
 
     def start_crawl(self):
