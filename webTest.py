@@ -7,13 +7,26 @@ from selenium.webdriver.common.by import By
 from selenium.common.exceptions import TimeoutException
 import time
 import uuid
+from pathlib import Path
+import json
+import requests
 
 class Web_Scraper:
 
     def __init__(self, url):
         self.driver = webdriver.Firefox()
         self.driver.get(url)
+        self.root_Path = "/home/ethanjy/Scratch/web_Scraping/raw_data"
         
+    def create_folder(self, path):
+        Path(self.root_Path + path).mkdir(parents=True, exist_ok=True)
+    
+    def download_Image(self, image_url, image_name):
+        img_data = requests.get(image_url).content
+        self.create_folder("/images")
+        with open(self.root_Path + '/images/' + image_name + '.jpg', 'wb') as handler:
+            handler.write(img_data)
+
     def accept_Cookies(self):
         delay = 10
         try:
@@ -78,13 +91,14 @@ class Web_Scraper:
         #Scrape Images
         image_list = images_container.find_elements_by_xpath('.//*[@class="Styles__Image-sc-176u4ag-1 etChzz"]')
         image_links = []
-        for image in image_list:
+        for idx, image in enumerate(image_list):
             try:
                 img_tag = image.find_element_by_tag_name('img')
             except:
                 pass
             link = img_tag.get_attribute('src')
             image_links.append(link)
+            self.download_Image(link, str(idx))
     
         #Scrape Details
         product_title = details_container.find_element_by_xpath('.//h1').text
@@ -108,9 +122,10 @@ class Web_Scraper:
             "Images": image_links
         }
 
-        print("\n")
+        with open(self.root_Path+'/data.json', 'w') as fp:
+            json.dump(product_Dict, fp)
+            
         print(product_Dict)
-        print("\n")
 
     def load_Product_Links(self, link_list):
         window_before = self.driver.window_handles[0]
@@ -120,11 +135,12 @@ class Web_Scraper:
             self.driver.switch_to.window(window_after)
             self.driver.get(link)
             self.scrape_Data(link)
-            #break #Take this out When we want to scrape all the links not just 1 per product type ##Testing purposes!
+            break #Take this out When we want to scrape all the links not just 1 per product type ##Testing purposes!
         self.driver.close()
         self.driver.switch_to.window(window_before)
 
     def start_crawl(self):
+        self.create_folder("")
         self.accept_Cookies()
         product_Type_Button, checkbox_list = self.get_product_types()
         for checkbox in checkbox_list:
@@ -137,11 +153,12 @@ class Web_Scraper:
                 self.load_Product_Links(link_list)
                 product_Type_Button.click()
                 checkbox.click()
+                break #Take this out When we want to scrape all the links not just 1 per product type ##Testing purposes!
 
 if __name__ == '__main__':
     mens_URL = "https://uk.gymshark.com/collections/all-products/mens"
     womens_URL = "https://uk.gymshark.com/collections/all-products/womens"
-    #mens_Catalogue = Web_Scraper(mens_URL)
-    #mens_Catalogue.start_crawl()
-    womens_Catalogue = Web_Scraper(womens_URL)
-    womens_Catalogue.start_crawl()
+    mens_Catalogue = Web_Scraper(mens_URL)
+    mens_Catalogue.start_crawl()
+    #womens_Catalogue = Web_Scraper(womens_URL)
+    #womens_Catalogue.start_crawl()
