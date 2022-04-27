@@ -93,7 +93,7 @@ class Web_Scraper:
             except: #Noticed on very rare occasions, a product didn't have any colours except itself, which we can't grab since no h4 tag exists, so under 'Other' instead
                 product_colour = 'Other'
             product_price = details_container.find_element_by_xpath('.//span[@class="Styles__Price-qfm034-4 laqfaf"]').text
-            product_sizes_container = details_container.find_element_by_xpath('.//div[@class="Styles__SizesWrapper-sc-8ocgtc-2 kAvucC"]')
+            product_sizes_container = details_container.find_element_by_xpath('.//div[contains(@class, "Styles__SizesWrapper")]')
             product_sizes = product_sizes_container.find_elements_by_xpath('./button')
             sizes_list = []
             for size in product_sizes:
