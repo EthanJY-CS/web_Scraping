@@ -8,6 +8,7 @@ import uuid
 from pathlib import Path
 import json
 import requests
+from typing import Any, Tuple, List
 
 class Web_Scraper:
     '''
@@ -67,14 +68,14 @@ class Web_Scraper:
         self.current_Directory = ""
         self.catalogue = catalogue
         
-    def create_Directory(self):
+    def create_Directory(self) -> None:
         '''
         Creates a Directory.
         The Directory is created at the concatenation of the root_Path and current_Directory
         '''
         Path(self.root_Path + self.current_Directory).mkdir(parents=True, exist_ok=True)
     
-    def download_Image(self, image_url, image_name):
+    def download_Image(self, image_url: str, image_name: str) -> None:
         '''
         Downloads the image of the content at the url link provided.
         The Images are downloaded in an images directory, named 'n.jpg'
@@ -94,7 +95,7 @@ class Web_Scraper:
             handler.write(img_data)
         self.current_Directory = self.current_Directory.replace("/images", "")
 
-    def accept_Cookies(self):
+    def accept_Cookies(self) -> None:
         '''
         Accepts the cookies button upon load of webpage.
         The driver waits for the container of the accept cookies handler,
@@ -108,7 +109,7 @@ class Web_Scraper:
         except TimeoutException:
             print("Loading took too much time!")
 
-    def load_More_Products(self):
+    def load_More_Products(self) -> None:
         '''
         Navigates to bottom of page and clicks load more button until all products show
         While there are more products to load, navigate to bottom of page and click
@@ -123,7 +124,7 @@ class Web_Scraper:
                 break 
         self.driver.execute_script("window.scrollTo(0, 0);")
 
-    def get_Product_Types(self):
+    def get_Product_Types(self) -> Tuple[Any, List[Any]]:
         '''
         Gets the product types from the filter bar and their checkboxes to navigate.
         Waits for the page to load filter bar, clicks on product_Type filter, and grabs
@@ -148,7 +149,7 @@ class Web_Scraper:
 
         return product_Type_Button, checkbox_list
 
-    def get_Product_Links(self):
+    def get_Product_Links(self) -> List[str]:
         '''
         Gets a List of all the HTML links from the products.
         Finds container that holds all the products, then finds all /article
@@ -169,7 +170,7 @@ class Web_Scraper:
             link_list.append(link)
         return link_list
 
-    def generate_ID(self, link):
+    def generate_ID(self, link: str) -> Tuple[str, str]:
         '''
         Creates the ID and UUID of a product.
         The id is stripped from the HTML link, as it contains a unique user friendly ID.
@@ -192,7 +193,7 @@ class Web_Scraper:
         uu_ID = str(uuid.uuid4())
         return id, uu_ID
     
-    def scrape_Data(self, link_HTML):
+    def scrape_Data(self, link_HTML: str) -> None:
         '''
         Collects all data from a products webpage.
         Waits for the left container to load on the webpage (chosen as its images so makes sense for loading time)
@@ -263,7 +264,7 @@ class Web_Scraper:
         except TimeoutException:
             print("Loading took too much time!")
 
-    def load_Product_Links(self, link_list):
+    def load_Product_Links(self, link_list: List[str]) -> None:
         '''
         Loads each products webpage in new tab ready to scrape.
         Opens a new tab, switches the window to new tab, then loads all products url from link_list,
@@ -286,7 +287,7 @@ class Web_Scraper:
         self.driver.close()
         self.driver.switch_to.window(window_before)
 
-    def start_Crawl(self):
+    def start_Crawl(self) -> None:
         '''
         Main control of flow function to call all other functions from in order.
         Main function that controls the rest of the scraper class. Creates raw_Data Directory in root_Path,
