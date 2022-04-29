@@ -64,7 +64,7 @@ class Web_Scraper:
         self.options.headless = False #Change to True when scraping Data
         self.driver = webdriver.Firefox(options=self.options)
         self.driver.get(url)
-        self.root_Path = "/home/ethanjy/Scratch/web_Scraping/raw_data"
+        self.root_Path = "/home/ethanjy/Scratch/web_Scraping"
         self.current_Directory = ""
         self.catalogue = catalogue
         
@@ -216,9 +216,9 @@ class Web_Scraper:
             #Scrape Details
             product_title = details_container.find_element_by_xpath('.//h1').text
             product_gender = details_container.find_element_by_xpath('.//h5').text
-            try:
+            try: #Noticed on very rare occasions, a product didn't have any colours except itself, which we can't grab since no h4 tag exists, so under 'Other' instead
                 product_colour = details_container.find_element_by_xpath('.//h4').text.replace("COLOR: ", "")
-            except: #Noticed on very rare occasions, a product didn't have any colours except itself, which we can't grab since no h4 tag exists, so under 'Other' instead
+            except:
                 product_colour = 'Other'
             product_price = details_container.find_element_by_xpath('.//span[@class="Styles__Price-qfm034-4 laqfaf"]').text
             product_sizes_container = details_container.find_element_by_xpath('.//div[contains(@class, "Styles__SizesWrapper")]')
@@ -228,6 +228,7 @@ class Web_Scraper:
                 sizes_list.append(size.get_attribute('aria-label'))
             id, uu_ID = self.generate_ID(link_HTML)
 
+            #Create directories and go into them
             self.current_Directory += "/" + product_title
             self.create_Directory() #Creates a directory of that product title! As they come in different colours, this is where they are stored under a single directory
             self.current_Directory += "/" + product_colour
@@ -245,7 +246,7 @@ class Web_Scraper:
                 except:
                     pass
 
-            #Create dictionary from the data collected
+            #Create dictionary from the product data collected
             product_Dict = {
                 "UUID": uu_ID,
                 "ID": id,
@@ -256,9 +257,12 @@ class Web_Scraper:
                 "Sizes": sizes_list,
                 "Images": image_links
             }
-
+            
+            #Create json file of the data dictionary
             with open(self.root_Path + self.current_Directory + '/data.json', 'w') as fp:
                 json.dump(product_Dict, fp)
+            
+            #back out of directories
             self.current_Directory = self.current_Directory.replace("/" + product_colour, "")
             self.current_Directory = self.current_Directory.replace("/" + product_title, "")
         except TimeoutException:
@@ -283,7 +287,7 @@ class Web_Scraper:
             self.driver.switch_to.window(window_after)
             self.driver.get(link)
             self.scrape_Data(link)
-            #break #Take this out When we want to scrape all the links not just 1 per product type ##Testing purposes!
+            #break #Take this out When we want to scrape all the links not just 1 per product type ##TESTING purposes!
         self.driver.close()
         self.driver.switch_to.window(window_before)
 
@@ -296,8 +300,9 @@ class Web_Scraper:
         to perform the scraping in order. The driver then quits after performing.
 
         '''
+        self.current_Directory = "/raw_data"
         self.create_Directory() #Creates raw_Data Directory
-        self.current_Directory = "/" + self.catalogue
+        self.current_Directory += "/" + self.catalogue
         self.create_Directory() #Creates catalogue Directory
         self.accept_Cookies()
         product_Type_Button, checkbox_list = self.get_Product_Types()
@@ -308,13 +313,12 @@ class Web_Scraper:
                 self.create_Directory() #Creates product_Type directory
                 checkbox.click()
                 product_Type_Button.click()
-                self.load_More_Products() #Take this out when we just want max 60 products
+                self.load_More_Products() #Comment this out when we just want max 60 products per type ##TESTING purposes!
                 link_list = self.get_Product_Links()
                 self.load_Product_Links(link_list)
                 product_Type_Button.click()
                 checkbox.click()
                 self.current_Directory = self.current_Directory.replace("/" + product_Type, "")
-                #break #Take this out When we want to scrape all the links not just 1 per product type ##Testing purposes!
         self.driver.quit()
 
 if __name__ == '__main__':
