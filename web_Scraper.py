@@ -8,7 +8,7 @@ import uuid
 from pathlib import Path
 import json
 import requests
-from typing import Any, Tuple, List
+from typing import Any, Tuple, List, Dict
 import cloud_data
 
 class Web_Scraper:
@@ -52,6 +52,8 @@ class Web_Scraper:
         Gets a List of all the HTML links from the products
     generate_ID(link)
         Creates the ID and UUID of a product
+    create_JSON_File(product_Dict)
+        Creates a json file.
     scrape_Data(link_HTML)
         Collects all data from a products webpage
     load_Product_Links(link_list)
@@ -194,6 +196,19 @@ class Web_Scraper:
         uu_ID = str(uuid.uuid4())
         return id, uu_ID
     
+    def create_JSON_File(self, product_Dict: Dict) -> None:
+        '''
+        Creates a json file.
+        Creates with the contents of a dictionary passed as it's argument
+
+        Parameters:
+        ----------
+        product_Dict: Dict
+            The dictionary data contents that in this case, the product data that will be created as a json file
+        '''
+        with open(self.root_Path + self.current_Directory + '/data.json', 'w') as fp:
+            json.dump(product_Dict, fp)
+
     def scrape_Data(self, link_HTML: str) -> None:
         '''
         Collects all data from a products webpage.
@@ -260,8 +275,7 @@ class Web_Scraper:
             }
             
             #Create json file of the data dictionary
-            with open(self.root_Path + self.current_Directory + '/data.json', 'w') as fp:
-                json.dump(product_Dict, fp)
+            self.create_JSON_File(product_Dict)
             
             #back out of directories
             self.current_Directory = self.current_Directory.replace("/" + product_colour, "")
@@ -331,4 +345,4 @@ if __name__ == '__main__':
     womens_Catalogue = Web_Scraper(womens_URL, "Womens")
     womens_Catalogue.start_Crawl()
     #Upload data collection to aws s3
-    cloud_data.upload_to_s3("raw_data", "gymshark-data", "raw_data")
+    cloud_data.upload_to_s3("raw_data", "gymshark-data", "raw-data")
