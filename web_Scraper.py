@@ -61,7 +61,7 @@ class Web_Scraper:
 
     def __init__(self, url, catalogue):
         self.options = Options()
-        self.options.headless = False #Change to True when scraping Data
+        self.options.headless = True #Change to True when scraping Data
         self.driver = webdriver.Firefox(options=self.options)
         self.driver.get(url)
         self.root_Path = "/home/ethanjy/Scratch/web_Scraping"
@@ -214,7 +214,7 @@ class Web_Scraper:
             details_container = self.driver.find_element_by_xpath('//*[@class="Styles__RightColumn-lpqwbz-3 beeZhk"]')
             
             #Scrape Details
-            product_title = details_container.find_element_by_xpath('.//h1').text
+            product_title = details_container.find_element_by_xpath('.//h1').text.replace("/", "-") #Pair of shorts tampered with pathway string as it was named 1/2 tight shorts.
             product_gender = details_container.find_element_by_xpath('.//h5').text
             try: #Noticed on very rare occasions, a product didn't have any colours except itself, which we can't grab since no h4 tag exists, so under 'Other' instead
                 product_colour = details_container.find_element_by_xpath('.//h4').text.replace("COLOR: ", "")
@@ -320,6 +320,7 @@ class Web_Scraper:
                 checkbox.click()
                 self.current_Directory = self.current_Directory.replace("/" + product_Type, "")
         self.driver.quit()
+        print("The {} catalogue has been Collected!".format(self.catalogue))
 
 if __name__ == '__main__':
     mens_URL = "https://uk.gymshark.com/collections/all-products/mens"
