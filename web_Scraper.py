@@ -9,6 +9,7 @@ from pathlib import Path
 import json
 import requests
 from typing import Any, Tuple, List
+import cloud_data
 
 class Web_Scraper:
     '''
@@ -329,3 +330,5 @@ if __name__ == '__main__':
     mens_Catalogue.start_Crawl()
     womens_Catalogue = Web_Scraper(womens_URL, "Womens")
     womens_Catalogue.start_Crawl()
+    #Upload data collection to aws s3
+    cloud_data.upload_to_s3("raw_data", "gymshark-data", "raw_data")
