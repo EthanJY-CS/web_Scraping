@@ -275,8 +275,9 @@ class Web_Scraper:
                 "Images": image_links
             }
             
-            #Add product dictionary to AWS RDS as a record
-            cloud_data.add_record_to_rds(product_Dict)
+            #Add product dictionary to AWS RDS as a record if it doesn't already exist
+            if not cloud_data.does_record_exist(id):
+                cloud_data.add_record_to_rds(product_Dict)
 
             #Create json file of the data dictionary
             self.create_JSON_File(product_Dict)
