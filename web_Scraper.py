@@ -333,7 +333,7 @@ class Web_Scraper:
                 self.create_Directory() #Creates product_Type directory
                 checkbox.click()
                 product_Type_Button.click()
-                #self.load_More_Products() #Comment this out when we just want max 60 products per type ##TESTING purposes!
+                self.load_More_Products() #Comment this out when we just want max 60 products per type ##TESTING purposes!
                 link_list = self.get_Product_Links()
                 self.load_Product_Links(link_list)
                 product_Type_Button.click()
@@ -345,10 +345,9 @@ class Web_Scraper:
 if __name__ == '__main__':
     mens_URL = "https://uk.gymshark.com/collections/all-products/mens"
     womens_URL = "https://uk.gymshark.com/collections/all-products/womens"
-    #mens_Catalogue = Web_Scraper(mens_URL, "Mens")
-    #mens_Catalogue.start_Crawl()
-    #womens_Catalogue = Web_Scraper(womens_URL, "Womens")
-    #womens_Catalogue.start_Crawl()
+    mens_Catalogue = Web_Scraper(mens_URL, "Mens")
+    mens_Catalogue.start_Crawl()
+    womens_Catalogue = Web_Scraper(womens_URL, "Womens")
+    womens_Catalogue.start_Crawl()
     #Upload data collection to aws s3
-    #cloud_data.upload_directory_to_s3()
-    cloud_data.read_database()
+    cloud_data.upload_directory_to_s3()
