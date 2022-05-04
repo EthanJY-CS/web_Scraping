@@ -64,8 +64,5 @@ class TestWebScraper(unittest.TestCase):
             #Remove json file in testing conditions
             shutil.rmtree("/home/ethanjy/Scratch/web_Scraping/raw_data/data.json", ignore_errors=True)
 
-        
-
-
 if __name__ == '__main__':
     unittest.main()
