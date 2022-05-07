@@ -1,8 +1,16 @@
 import boto3
 import os
-from psycopg2 import connect
 from sqlalchemy import create_engine
 import pandas as pd
+
+DATABASE_TYPE = 'postgresql'
+DBAPI = 'psycopg2'
+ENDPOINT = 'gymshark-database.cealtvnlvdai.eu-west-1.rds.amazonaws.com' # Change it for your AWS endpoint
+USER = 'postgres'
+PASSWORD = 'EthanJY69' 
+PORT = 5432
+DATABASE = 'postgres'
+engine = create_engine(f"{DATABASE_TYPE}+{DBAPI}://{USER}:{PASSWORD}@{ENDPOINT}:{PORT}/{DATABASE}")
 
 def upload_to_s3(fileName, bucketName, objectName):
     s3_client = boto3.client('s3')
@@ -32,40 +40,24 @@ def upload_directory_to_s3():
     except Exception as err:
         print(err)
 
-def create_RDS_engine():
-    DATABASE_TYPE = 'postgresql'
-    DBAPI = 'psycopg2'
-    ENDPOINT = 'gymshark-database.cealtvnlvdai.eu-west-1.rds.amazonaws.com' # Change it for your AWS endpoint
-    USER = 'postgres'
-    PASSWORD = 'EthanJY69' 
-    PORT = 5432
-    DATABASE = 'postgres'
-    engine = create_engine(f"{DATABASE_TYPE}+{DBAPI}://{USER}:{PASSWORD}@{ENDPOINT}:{PORT}/{DATABASE}")
-    return engine
-
 def add_record_to_rds(dict_ToAdd):
-    engine = create_RDS_engine()
-    connection = engine.connect()
     record = pd.DataFrame([dict_ToAdd])
-    record.to_sql("gymshark-database", connection, if_exists='append')
-    connection.close()
-    engine.dispose()
+    record.to_sql("gymshark_database", engine, if_exists='append')
 
 def read_database():
-    engine = create_RDS_engine()
-    connection = engine.connect()
-    df = pd.read_sql_table('gymshark-database', connection)
+    df = pd.read_sql_table('gymshark_database', engine)
     print(df.head())
-    connection.close()
-    engine.dispose()
+    print(df.shape)
 
 def does_record_exist(id):
-    engine = create_RDS_engine()
-    connection = engine.connect()
-    record = connection.execute("SELECT 1 FROM gymshark-database WHERE ID=%s;", id)
-    connection.close()
-    engine.dispose()
-    if record.rowcount() == 0:
+    record = engine.execute("SELECT 1 FROM gymshark-database WHERE 'ID'= %s", id)
+    if record.rowcount == 0:
         return False
     else:
         return True
+
+def drop_table():
+    engine.execute("DROP TABLE gymshark_database;")
+
+if __name__ == '__main__':
+    pass
