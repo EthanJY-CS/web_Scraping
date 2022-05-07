@@ -1,15 +1,18 @@
 from selenium import webdriver
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.firefox.options import Options
+from selenium.webdriver.firefox.service import Service
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
 from selenium.common.exceptions import TimeoutException
-import uuid
 from pathlib import Path
+from typing import Any, Tuple, List, Dict
+from os import devnull
+import uuid
 import json
 import requests
-from typing import Any, Tuple, List, Dict
 import cloud_data
+
 
 class Web_Scraper:
     '''
@@ -65,7 +68,7 @@ class Web_Scraper:
     def __init__(self, url, catalogue):
         self.options = Options()
         self.options.headless = True #Change to True when scraping Data
-        self.driver = webdriver.Firefox(options=self.options)
+        self.driver = webdriver.Firefox(service=Service(log_path=devnull), options=self.options)
         self.driver.get(url)
         self.root_Path = "/home/ethanjy/Scratch/web_Scraping"
         self.current_Directory = ""
