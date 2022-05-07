@@ -1,4 +1,3 @@
-from importlib.resources import path
 from selenium import webdriver
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.firefox.options import Options
@@ -52,7 +51,7 @@ class Web_Scraper:
     get_Product_Links()
         Gets a List of all the HTML links from the products
     generate_ID(link)
-        Creates the ID and UUID of a product
+        Creates the ID of a product
     create_JSON_File(product_Dict)
         Creates a json file.
     scrape_Data(link_HTML)
@@ -93,11 +92,8 @@ class Web_Scraper:
             The integer idx of the image passed as string
         '''
         img_data = requests.get(image_url).content
-        self.current_Directory += "/images"
-        self.create_Directory() #Creates Directory for images inside the
         with open(self.root_Path + self.current_Directory + "/" + image_name + '.jpg', 'wb') as handler:
             handler.write(img_data)
-        self.current_Directory = self.current_Directory.replace("/images", "")
 
     def accept_Cookies(self) -> None:
         '''
@@ -121,7 +117,7 @@ class Web_Scraper:
         '''
         while True:
             try:
-                load_More_Button = self.driver.find_element_by_xpath('//*[@class="Styles__Button-sc-1kpnvfh-4 cRnfyG Styles__PaginationButton-sc-1kf2zc1-1 hBnwhL"]')
+                load_More_Button = self.driver.find_element(By.XPATH, '//*[@class="Styles__Button-sc-1kpnvfh-4 cRnfyG Styles__PaginationButton-sc-1kf2zc1-1 hBnwhL"]')
                 self.driver.execute_script("window.scrollTo(0, (document.body.scrollHeight) - 1200);")
                 load_More_Button.click()
             except:
@@ -144,10 +140,10 @@ class Web_Scraper:
         delay = 10
         try:
             WebDriverWait(self.driver, delay).until(EC.presence_of_element_located((By.XPATH, '//*[@id="collections"]')))
-            catagory_container = self.driver.find_element_by_xpath('//*[@id="collections"]')
-            product_Type_Button = catagory_container.find_element_by_xpath('./button')
+            catagory_container = self.driver.find_element(By.XPATH, '//*[@id="collections"]')
+            product_Type_Button = catagory_container.find_element(By.XPATH, './button')
             product_Type_Button.click()
-            checkbox_list = catagory_container.find_elements_by_xpath('.//*[@class="Styles__Checkbox-sc-9kless-1 eLKrVj"]')
+            checkbox_list = catagory_container.find_elements(By.XPATH, './/*[@class="Styles__Checkbox-sc-9kless-1 eLKrVj"]')
         except TimeoutException:
             print("Loading took too much time!")
 
@@ -165,20 +161,22 @@ class Web_Scraper:
         link_list: List[str]
              list of all the HTML links to all products loaded on a page
         '''
-        prod_container = self.driver.find_element_by_xpath('//*[@class="Styles__Grid-sc-1hr3n2q-0 ekxOoE"]')
-        prod_list = prod_container.find_elements_by_xpath('./article')
+        prod_container = self.driver.find_element(By.XPATH, '//*[@class="Styles__Grid-sc-1hr3n2q-0 ekxOoE"]')
+        prod_list = prod_container.find_elements(By.XPATH, './article')
         link_list = []
         for product in prod_list:
-            a_tag = product.find_element_by_tag_name('a')
+            a_tag = product.find_element(By.TAG_NAME, 'a')
             link = a_tag.get_attribute('href')
-            link_list.append(link)
+            id = self.generate_ID(link)
+            #Checks aws RDS to see if the product has already been scraped or not. Only products not scraped before will be added.
+            if not cloud_data.does_record_exist(id):
+                link_list.append(link)
         return link_list
 
     def generate_ID(self, link: str) -> Tuple[str, str]:
         '''
-        Creates the ID and UUID of a product.
+        Creates the ID of a product.
         The id is stripped from the HTML link, as it contains a unique user friendly ID.
-        The UUID is generated using UUID4 from the UUID library and stored as a string.
 
         Parameters:
         ----------
@@ -189,13 +187,10 @@ class Web_Scraper:
         -------
         id: str
             The id of the product
-        uu_ID: str
-            The generated UUID of the product
         '''
         idx = link.find('gymshark-', 0, len(link))
         id = link[idx:len(link)]
-        uu_ID = str(uuid.uuid4())
-        return id, uu_ID
+        return id
     
     def create_JSON_File(self, product_Dict: Dict) -> None:
         '''
@@ -227,23 +222,24 @@ class Web_Scraper:
         delay = 10
         try:
             WebDriverWait(self.driver, delay).until(EC.presence_of_element_located((By.XPATH, '//*[@class="Styles__LeftColumn-lpqwbz-2 danMny"]')))
-            images_container = self.driver.find_element_by_xpath('//*[@class="Styles__LeftColumn-lpqwbz-2 danMny"]')
-            details_container = self.driver.find_element_by_xpath('//*[@class="Styles__RightColumn-lpqwbz-3 beeZhk"]')
+            images_container = self.driver.find_element(By.XPATH, '//*[@class="Styles__LeftColumn-lpqwbz-2 danMny"]')
+            details_container = self.driver.find_element(By.XPATH, '//*[@class="Styles__RightColumn-lpqwbz-3 beeZhk"]')
             
             #Scrape Details
-            product_title = details_container.find_element_by_xpath('.//h1').text.replace("/", "-") #Pair of shorts tampered with pathway string as it was named 1/2 tight shorts.
-            product_gender = details_container.find_element_by_xpath('.//h5').text
+            product_title = details_container.find_element(By.XPATH, './/h1').text.replace("/", "-") #Pair of shorts tampered with pathway string as it was named 1/2 tight shorts.
+            product_gender = details_container.find_element(By.XPATH, './/h5').text
             try: #Noticed on very rare occasions, a product didn't have any colours except itself, which we can't grab since no h4 tag exists, so under 'Other' instead
-                product_colour = details_container.find_element_by_xpath('.//h4').text.replace("COLOR: ", "")
+                product_colour = details_container.find_element(By.XPATH, './/h4').text.replace("COLOR: ", "")
             except:
                 product_colour = 'Other'
-            product_price = details_container.find_element_by_xpath('.//span[@class="Styles__Price-qfm034-4 laqfaf"]').text
-            product_sizes_container = details_container.find_element_by_xpath('.//div[contains(@class, "Styles__SizesWrapper")]')
-            product_sizes = product_sizes_container.find_elements_by_xpath('./button')
+            product_price = details_container.find_element(By.XPATH, './/span[@class="Styles__Price-qfm034-4 laqfaf"]').text
+            product_sizes_container = details_container.find_element(By.XPATH, './/div[contains(@class, "Styles__SizesWrapper")]')
+            product_sizes = product_sizes_container.find_elements(By.XPATH, './button')
             sizes_list = []
             for size in product_sizes:
                 sizes_list.append(size.get_attribute('aria-label'))
-            id, uu_ID = self.generate_ID(link_HTML)
+            id = self.generate_ID(link_HTML)
+            uu_ID = str(uuid.uuid4())
 
             #Create directories and go into them
             self.current_Directory += "/" + product_title
@@ -252,16 +248,21 @@ class Web_Scraper:
             self.create_Directory() #Creates a directory of the specific product by id which will containt it's data json file and images directory
 
             #Scrape Images
-            image_list = images_container.find_elements_by_xpath('.//*[@class="Styles__Image-sc-176u4ag-1 etChzz"]')
+            image_list = images_container.find_elements(By.XPATH, './/*[@class="Styles__Image-sc-176u4ag-1 etChzz"]')
             image_links = []
+            self.current_Directory += "/images"
+            self.create_Directory() #Creates Directory for images inside the
             for idx, image in enumerate(image_list):
                 try:
-                    img_tag = image.find_element_by_tag_name('img')
+                    img_tag = image.find_element(By.TAG_NAME, 'img')
                     link = img_tag.get_attribute('src')
                     image_links.append(link)
                     self.download_Image(link, str(idx))
+                    #Upload image to s3
+                    cloud_data.upload_to_s3(self.root_Path+self.current_Directory+"/"+str(idx)+".jpg", "gymshark-data", self.current_Directory[1:]+"/"+str(idx)+".jpg")  
                 except:
-                    pass
+                    pass 
+            self.current_Directory = self.current_Directory.replace("/images", "")
 
             #Create dictionary from the product data collected
             product_Dict = {
@@ -275,12 +276,13 @@ class Web_Scraper:
                 "Images": image_links
             }
             
-            #Add product dictionary to AWS RDS as a record if it doesn't already exist
-            if not cloud_data.does_record_exist(id):
-                cloud_data.add_record_to_rds(product_Dict)
+            #Add product dictionary to AWS RDS as a record
+            cloud_data.add_record_to_rds(product_Dict)
 
             #Create json file of the data dictionary
             self.create_JSON_File(product_Dict)
+            #Upload json file to s3
+            cloud_data.upload_to_s3(self.root_Path+self.current_Directory+"/data.json", "gymshark-data", self.current_Directory[1:]+"/data.json")
             
             #back out of directories
             self.current_Directory = self.current_Directory.replace("/" + product_colour, "")
@@ -335,12 +337,12 @@ class Web_Scraper:
                 product_Type_Button.click()
                 self.load_More_Products() #Comment this out when we just want max 60 products per type ##TESTING purposes!
                 link_list = self.get_Product_Links()
-                self.load_Product_Links(link_list)
+                if len(link_list) > 0:
+                    self.load_Product_Links(link_list)
                 product_Type_Button.click()
                 checkbox.click()
                 self.current_Directory = self.current_Directory.replace("/" + product_Type, "")
         self.driver.quit()
-        print("The {} catalogue has been Collected!".format(self.catalogue))
 
 if __name__ == '__main__':
     mens_URL = "https://uk.gymshark.com/collections/all-products/mens"
@@ -349,5 +351,3 @@ if __name__ == '__main__':
     mens_Catalogue.start_Crawl()
     womens_Catalogue = Web_Scraper(womens_URL, "Womens")
     womens_Catalogue.start_Crawl()
-    #Upload data collection to aws s3
-    cloud_data.upload_directory_to_s3()
