@@ -13,7 +13,6 @@ import json
 import requests
 import cloud_data
 
-
 class Web_Scraper:
     '''
     A Web Scraper that is as generic as possible when regarding to control flow and processes 
@@ -32,10 +31,8 @@ class Web_Scraper:
         WebDriverOptions to be used when wanting to run in headless mode
     driver: WebDriver
         Webdriver to be used to drive the website UI, from Selenium
-    root_Path: str
-        str of the root_path to the environments directory
     current_Directory: str
-        str of the path of current directory that will be concatenated with root_Path
+        str of the path of current directory
     catalogue: str
         str of the catalogue, used for directory creation, passed from parameter
      
@@ -70,16 +67,15 @@ class Web_Scraper:
         self.options.headless = True #Change to True when scraping Data
         self.driver = webdriver.Firefox(service=Service(log_path=devnull), options=self.options)
         self.driver.get(url)
-        self.root_Path = "/home/ethanjy/Scratch/web_Scraping"
         self.current_Directory = ""
         self.catalogue = catalogue
         
     def create_Directory(self) -> None:
         '''
         Creates a Directory.
-        The Directory is created at the concatenation of the root_Path and current_Directory
+        The Directory is created at current_Directory
         '''
-        Path(self.root_Path + self.current_Directory).mkdir(parents=True, exist_ok=True)
+        Path(self.current_Directory).mkdir(parents=True, exist_ok=True)
     
     def download_Image(self, image_url: str, image_name: str) -> None:
         '''
@@ -95,7 +91,7 @@ class Web_Scraper:
             The integer idx of the image passed as string
         '''
         img_data = requests.get(image_url).content
-        with open(self.root_Path + self.current_Directory + "/" + image_name + '.jpg', 'wb') as handler:
+        with open(self.current_Directory + "/" + image_name + '.jpg', 'wb') as handler:
             handler.write(img_data)
 
     def accept_Cookies(self) -> None:
@@ -205,7 +201,7 @@ class Web_Scraper:
         product_Dict: Dict
             The dictionary data contents that in this case, the product data that will be created as a json file
         '''
-        with open(self.root_Path + self.current_Directory + '/data.json', 'w') as fp:
+        with open(self.current_Directory + '/data.json', 'w') as fp:
             json.dump(product_Dict, fp)
 
     def scrape_Data(self, link_HTML: str) -> None:
@@ -262,7 +258,7 @@ class Web_Scraper:
                     image_links.append(link)
                     self.download_Image(link, str(idx))
                     #Upload image to s3
-                    cloud_data.upload_to_s3(self.root_Path+self.current_Directory+"/"+str(idx)+".jpg", "gymshark-data", self.current_Directory[1:]+"/"+str(idx)+".jpg")  
+                    cloud_data.upload_to_s3(self.current_Directory+"/"+str(idx)+".jpg", "gymshark-data", self.current_Directory[1:]+"/"+str(idx)+".jpg")  
                 except:
                     pass 
             self.current_Directory = self.current_Directory.replace("/images", "")
@@ -285,7 +281,7 @@ class Web_Scraper:
             #Create json file of the data dictionary
             self.create_JSON_File(product_Dict)
             #Upload json file to s3
-            cloud_data.upload_to_s3(self.root_Path+self.current_Directory+"/data.json", "gymshark-data", self.current_Directory[1:]+"/data.json")
+            cloud_data.upload_to_s3(self.current_Directory+"/data.json", "gymshark-data", self.current_Directory[1:]+"/data.json")
             
             #back out of directories
             self.current_Directory = self.current_Directory.replace("/" + product_colour, "")
@@ -319,13 +315,13 @@ class Web_Scraper:
     def start_Crawl(self) -> None:
         '''
         Main control of flow function to call all other functions from in order.
-        Main function that controls the rest of the scraper class. Creates raw_Data Directory in root_Path,
+        Main function that controls the rest of the scraper class. Creates raw_Data Directory in the workingDir,
         then creates the catalogue it's scraping from. Accepts cookies then navigates the webpage by clicking
         each product type checkbox in each loop from the filter bar, and then calling all necessary functions 
         to perform the scraping in order. The driver then quits after performing.
 
         '''
-        self.current_Directory = "/raw_data"
+        self.current_Directory = "raw_data"
         self.create_Directory() #Creates raw_Data Directory
         self.current_Directory += "/" + self.catalogue
         self.create_Directory() #Creates catalogue Directory
