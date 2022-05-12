@@ -1,13 +1,12 @@
 from selenium import webdriver
 from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.firefox.firefox_binary import FirefoxBinary
 from selenium.webdriver.firefox.options import Options
-from selenium.webdriver.firefox.service import Service
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
 from selenium.common.exceptions import TimeoutException
 from pathlib import Path
 from typing import Any, Tuple, List, Dict
-from os import devnull
 import uuid
 import json
 import requests
@@ -65,7 +64,8 @@ class Web_Scraper:
     def __init__(self, url, catalogue):
         self.options = Options()
         self.options.headless = True #Change to True when scraping Data
-        self.driver = webdriver.Firefox(service=Service(log_path=devnull), options=self.options)
+        self.options.binary_location = FirefoxBinary('/opt/firefox/firefox') #Comment this out on local machine. #Used in docker container
+        self.driver = webdriver.Firefox(options=self.options)
         self.driver.get(url)
         self.current_Directory = ""
         self.catalogue = catalogue
@@ -260,7 +260,7 @@ class Web_Scraper:
                     #Upload image to s3
                     cloud_data.upload_to_s3(self.current_Directory+"/"+str(idx)+".jpg", "gymshark-data", self.current_Directory[1:]+"/"+str(idx)+".jpg")  
                 except:
-                    pass 
+                    pass
             self.current_Directory = self.current_Directory.replace("/images", "")
 
             #Create dictionary from the product data collected
@@ -336,12 +336,14 @@ class Web_Scraper:
                 product_Type_Button.click()
                 self.load_More_Products() #Comment this out when we just want max 60 products per type ##TESTING purposes!
                 link_list = self.get_Product_Links()
+                print("There are {} {} to scrape from the {} catalogue".format(len(link_list), product_Type, self.catalogue))
                 if len(link_list) > 0:
                     self.load_Product_Links(link_list)
                 product_Type_Button.click()
                 checkbox.click()
                 self.current_Directory = self.current_Directory.replace("/" + product_Type, "")
         self.driver.quit()
+        print("The {} catalogue has been collected!".format(self.catalogue))
 
 if __name__ == '__main__':
     mens_URL = "https://uk.gymshark.com/collections/all-products/mens"
