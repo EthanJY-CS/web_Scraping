@@ -46,11 +46,11 @@ def add_record_to_rds(dict_ToAdd):
 
 def read_database():
     df = pd.read_sql_table('gymshark_database', engine)
-    print(df.head())
+    print(df.loc[:,['ID']].head())
     print(df.shape)
 
 def does_record_exist(id):
-    record = engine.execute("SELECT 1 FROM gymshark-database WHERE 'ID'= %s", id)
+    record = engine.execute("SELECT 1 FROM gymshark_database WHERE 'ID'= %s", id)
     if record.rowcount == 0:
         return False
     else:
