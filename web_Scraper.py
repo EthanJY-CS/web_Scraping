@@ -342,8 +342,8 @@ class Web_Scraper:
                 product_Type_Button.click()
                 checkbox.click()
                 self.current_Directory = self.current_Directory.replace("/" + product_Type, "")
-        self.driver.quit()
         print("The {} catalogue has been collected!".format(self.catalogue))
+        self.driver.quit()
 
 if __name__ == '__main__':
     mens_URL = "https://uk.gymshark.com/collections/all-products/mens"
