@@ -41,23 +41,27 @@ def upload_directory_to_s3():
         print(err)
 
 def add_record_to_rds(dict_ToAdd):
-    record = pd.DataFrame([dict_ToAdd])
-    record.to_sql("gymshark_database", engine, if_exists='append')
+    with engine.connect() as connection:
+        record = pd.DataFrame([dict_ToAdd])
+        record.to_sql("gymshark_database", connection, if_exists='append')
 
 def read_database():
-    df = pd.read_sql_table('gymshark_database', engine)
-    print(df.loc[:,['ID']].head())
-    print(df.shape)
+    with engine.connect() as connection:
+        df = pd.read_sql_table("gymshark_database", connection)
+        print(df.loc[:,['ID']].head())
+        print(df.shape)
 
 def does_record_exist(id):
-    record = engine.execute("SELECT 1 FROM gymshark_database WHERE 'ID'= %s", id)
-    if record.rowcount == 0:
-        return False
-    else:
-        return True
+    with engine.connect() as connection:
+        record = connection.execute('SELECT 1 FROM gymshark_database WHERE "ID" = %s;', id)
+        if record.rowcount == 0:
+            return False
+        else:
+            return True
 
 def drop_table():
-    engine.execute("DROP TABLE gymshark_database;")
+    with engine.connect() as connection:
+        connection.execute('DROP TABLE gymshark_database;')
 
 if __name__ == '__main__':
-    pass
+    print(does_record_exist("gymshark-apollo-camo-t-shirt-black-ss22"))
