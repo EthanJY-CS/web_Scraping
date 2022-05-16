@@ -104,7 +104,8 @@ class Web_Scraper:
         try:
             WebDriverWait(self.driver, delay).until(EC.presence_of_element_located((By.XPATH, '//*[@id="onetrust-accept-btn-handler"]')))
             accept_cookies_button = WebDriverWait(self.driver, delay).until(EC.presence_of_element_located((By.XPATH, '//*[@id="onetrust-accept-btn-handler"]')))
-            accept_cookies_button.click()
+            self.driver.execute_script("arguments[0].click();", accept_cookies_button)
+            #accept_cookies_button.click()
         except TimeoutException:
             print("Loading took too much time!")
 
@@ -114,14 +115,19 @@ class Web_Scraper:
         While there are more products to load, navigate to bottom of page and click
         load more button, all products from a product type will load on the same page.
         '''
+        delay = 5
         while True:
             try:
+                WebDriverWait(self.driver, delay).until(EC.presence_of_element_located((By.XPATH, '//*[@class="Styles__Button-sc-1kpnvfh-4 cRnfyG Styles__PaginationButton-sc-1kf2zc1-1 hBnwhL"]')))
                 load_More_Button = self.driver.find_element(By.XPATH, '//*[@class="Styles__Button-sc-1kpnvfh-4 cRnfyG Styles__PaginationButton-sc-1kf2zc1-1 hBnwhL"]')
-                self.driver.execute_script("window.scrollTo(0, (document.body.scrollHeight) - 1200);")
-                load_More_Button.click()
+                #self.driver.execute_script("window.scrollTo(0, (document.body.scrollHeight) - 1200);")
+                self.driver.execute_script("arguments[0].scrollIntoView();", load_More_Button)
+                self.driver.execute_script("arguments[0].click();", load_More_Button)
+                print("This is an infinite Loop!")
+                #load_More_Button.click()
             except:
-                break 
-        self.driver.execute_script("window.scrollTo(0, 0);")
+                break
+            self.driver.execute_script("window.scrollTo(0, 0);")
 
     def get_Product_Types(self) -> Tuple[Any, List[Any]]:
         '''
@@ -141,7 +147,8 @@ class Web_Scraper:
             WebDriverWait(self.driver, delay).until(EC.presence_of_element_located((By.XPATH, '//*[@id="collections"]')))
             catagory_container = self.driver.find_element(By.XPATH, '//*[@id="collections"]')
             product_Type_Button = catagory_container.find_element(By.XPATH, './button')
-            product_Type_Button.click()
+            self.driver.execute_script("arguments[0].click();", product_Type_Button)
+            #product_Type_Button.click()
             checkbox_list = catagory_container.find_elements(By.XPATH, './/*[@class="Styles__Checkbox-sc-9kless-1 eLKrVj"]')
         except TimeoutException:
             print("Loading took too much time!")
@@ -332,15 +339,19 @@ class Web_Scraper:
             if product_Type != 'Accessories': #In case of womens catalogue, they added accessories as a clothing type for some reason, so we ignore this
                 self.current_Directory += "/" + product_Type
                 self.create_Directory() #Creates product_Type directory
-                checkbox.click()
-                product_Type_Button.click()
+                self.driver.execute_script("arguments[0].click();", checkbox)
+                #checkbox.click()
+                self.driver.execute_script("arguments[0].click();", product_Type_Button)
+                #product_Type_Button.click()
                 self.load_More_Products() #Comment this out when we just want max 60 products per type ##TESTING purposes!
                 link_list = self.get_Product_Links()
                 print("There are {} {} to scrape from the {} catalogue".format(len(link_list), product_Type, self.catalogue))
                 if len(link_list) > 0:
                     self.load_Product_Links(link_list)
-                product_Type_Button.click()
-                checkbox.click()
+                self.driver.execute_script("arguments[0].click();", product_Type_Button)
+                #product_Type_Button.click()
+                self.driver.execute_script("arguments[0].click();", checkbox)
+                #checkbox.click()
                 self.current_Directory = self.current_Directory.replace("/" + product_Type, "")
         print("The {} catalogue has been collected!".format(self.catalogue))
         self.driver.quit()
