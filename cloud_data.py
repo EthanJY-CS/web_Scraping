@@ -64,4 +64,4 @@ def drop_table():
         connection.execute('DROP TABLE gymshark_database;')
 
 if __name__ == '__main__':
-    print(does_record_exist("gymshark-apollo-camo-t-shirt-black-ss22"))
+    pass
