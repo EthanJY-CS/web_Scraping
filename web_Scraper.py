@@ -115,7 +115,7 @@ class Web_Scraper:
         While there are more products to load, navigate to bottom of page and click
         load more button, all products from a product type will load on the same page.
         '''
-        delay = 5
+        delay = 10
         while True:
             try:
                 WebDriverWait(self.driver, delay).until(EC.presence_of_element_located((By.XPATH, '//*[@class="Styles__Button-sc-1kpnvfh-4 cRnfyG Styles__PaginationButton-sc-1kf2zc1-1 hBnwhL"]')))
@@ -123,7 +123,6 @@ class Web_Scraper:
                 #self.driver.execute_script("window.scrollTo(0, (document.body.scrollHeight) - 1200);")
                 self.driver.execute_script("arguments[0].scrollIntoView();", load_More_Button)
                 self.driver.execute_script("arguments[0].click();", load_More_Button)
-                print("This is an infinite Loop!")
                 #load_More_Button.click()
             except:
                 break
