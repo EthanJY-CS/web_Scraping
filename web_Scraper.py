@@ -174,8 +174,8 @@ class Web_Scraper:
             link = a_tag.get_attribute('href')
             id = self.generate_ID(link)
             #Checks aws RDS to see if the product has already been scraped or not. Only products not scraped before will be added.
-            if not cloud_data.does_record_exist(id):
-                link_list.append(link)
+            #if not cloud_data.does_record_exist(id):
+            link_list.append(link)
         return link_list
 
     def generate_ID(self, link: str) -> Tuple[str, str]:
@@ -264,7 +264,7 @@ class Web_Scraper:
                     image_links.append(link)
                     self.download_Image(link, str(idx))
                     #Upload image to s3
-                    cloud_data.upload_to_s3(self.current_Directory+"/"+str(idx)+".jpg", "gymshark-data", self.current_Directory[1:]+"/"+str(idx)+".jpg")  
+                    cloud_data.upload_to_s3(self.current_Directory+"/"+str(idx)+".jpg", "gymshark-data", self.current_Directory+"/"+str(idx)+".jpg")  
                 except:
                     pass
             self.current_Directory = self.current_Directory.replace("/images", "")
@@ -287,7 +287,7 @@ class Web_Scraper:
             #Create json file of the data dictionary
             self.create_JSON_File(product_Dict)
             #Upload json file to s3
-            cloud_data.upload_to_s3(self.current_Directory+"/data.json", "gymshark-data", self.current_Directory[1:]+"/data.json")
+            cloud_data.upload_to_s3(self.current_Directory+"/data.json", "gymshark-data", self.current_Directory+"/data.json")
             
             #back out of directories
             self.current_Directory = self.current_Directory.replace("/" + product_colour, "")
