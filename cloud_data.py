@@ -13,7 +13,8 @@ DATABASE = 'postgres'
 engine = create_engine(f"{DATABASE_TYPE}+{DBAPI}://{USER}:{PASSWORD}@{ENDPOINT}:{PORT}/{DATABASE}")
 
 def upload_to_s3(fileName, bucketName, objectName):
-    s3_client = boto3.client('s3')
+    s3_client = boto3.client('s3', aws_access_key_id="AKIA3W5XCOYOUCF6QDXX",
+         aws_secret_access_key="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")
     #response = s3_client.upload_file(file_name, bucket, object_name)
     response = s3_client.upload_file(fileName, bucketName, objectName)
 
@@ -64,4 +65,4 @@ def drop_table():
         connection.execute('DROP TABLE gymshark_database;')
 
 if __name__ == '__main__':
-    pass
+    drop_table()
