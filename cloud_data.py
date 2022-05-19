@@ -64,4 +64,4 @@ def drop_table():
         connection.execute('DROP TABLE gymshark_database;')
 
 if __name__ == '__main__':
-    drop_table()
+    pass
