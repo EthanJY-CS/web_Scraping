@@ -174,8 +174,8 @@ class Web_Scraper:
             link = a_tag.get_attribute('href')
             id = self.generate_ID(link)
             #Checks aws RDS to see if the product has already been scraped or not. Only products not scraped before will be added.
-            #if not cloud_data.does_record_exist(id):
-            link_list.append(link)
+            if not cloud_data.does_record_exist(id):
+                link_list.append(link)
         return link_list
 
     def generate_ID(self, link: str) -> Tuple[str, str]:
