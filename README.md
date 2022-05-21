@@ -19,7 +19,7 @@ Goal is to collect data from both their mens and womens catalogue, and in which 
 - Product ID
 - Price
 - Sizes Available
-- Colours Available (although redundent to a degree as all individual colours of a specific clothing are under 'all products' anyway)
+- Colours Available
 - Any images of the clothing showcased
 
 ## Milestone 2: Prototype finding the individual page for each entry
@@ -76,3 +76,46 @@ so here's how I wanted to design my raw_data directory.
     """
 ```
 
+## Milestone 4: Documentation and Testing
+
+First to scrutinise the code and refactor, which you naturally do over the course of the project anyway, when you realise you could do something different that will optimise workflow etc. Then Docstrings were added to the file to explain and readably convey my project where I chose the NumPy/SciPy style format. In addition to this and I didn't have to but I had a go at Typing, using Pythons built in typing library, which essentially just adds more understanding to the code as to the data types of variables, arguments and function returns. 
+
+Building onto this, we then used pythons unittest library to apply unit testing to public methods from our web_Scraper class. I didn't have many public methods that we standalone, without then moving into component testing which is slightly different (unit testing uses dummy data, component testing uses real data), so the test suite was quite small, testing;
+- the ability to create a directory at a given path
+- to generate the ID of a product (strip the ID from a string of it's HTML link)
+- downloading an image using the image src of a link (in this case, a product)
+- the ability to create a json file of a dictionary, then read it back in to test the contents
+
+Here are the 4 tests passing when running the test suite
+> ![image](https://user-images.githubusercontent.com/78024243/169661880-35bfdc18-e3d6-4255-b06f-5cc4d912ff89.png)
+
+## Milestone 5: Scalably store the Data
+
+This is where we learn to operate AWS services to scalably store the data that we scrape from the website, using the services;
+- S3 to store the raw_data folder, which contains both the json files and any image data
+    - This is where I learnt that an S3 Bucket operates using objects, and there's no such thing as directories, but it can simulate them online if you use       the same paths as you were to create them locally when uploading to S3
+- RDS to store the contents of the json files as tabular data
+- IAM to create an admin User that we will use the credentials for when connecting to these services
+- EC2 instance to run and operate workflow on the cloud instead of locally (Milestone 7)
+
+To make this possible, I used the boto3 library to create a client that connects to S3 services, to upload the contents of raw_data, this is done individually for every product scraped, uploading with the 'path' as it would be locally and therefore as an object to S3 that can simulate that path.
+Then using sqlalchemy and pandas, for reading/uploading to AWS RDS, where we connect to the database via creating an engine from sqlAlchemy. With 3 main methods that we need;
+- To upload/append a data_dict of a product to the table 'gymshark-database' to RDS
+- To read the table (printing the .head() and then the shape of the table to confirm for testing to check if they are being uploaded correctly)
+- To check if a record exists by ID. A does_record_exist() that checks the database to see if we have already scraped a product using it's ID (Milestone 7)
+
+Example of the contents uploaded to S3:
+> ![image](https://user-images.githubusercontent.com/78024243/169663572-b26fd63f-cd44-4775-b704-40c2c189bf26.png)
+
+Example of running the read_database():
+> ![image](https://user-images.githubusercontent.com/78024243/169663662-1fa4fbe7-a656-4cd6-aed5-a133d2d24876.png)
+
+## Milestone 6: Getting more Data
+
+Funny enough I skipped this milestone as it didn't concern me having already done it, essentially can the scraper run without issues and scraping more data, but I had already wanted to scrape all the products anyway so I was testing if the project could do this since at milestone 3. The other option was to stop the rescraping of images/data locally, but I knew we were about to do it when referencing to AWS RDS which will in turn do it locally.
+
+## Milestone 7: Make the scraping Scalable
+
+## Milestone 8: Monitoring and Alerting
+
+## Milestone 9: Setup a CI/CD pipeline for your Docker image
