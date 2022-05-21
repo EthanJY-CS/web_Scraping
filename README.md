@@ -44,6 +44,9 @@ lowers the maximum amount of products to ever load all at once to no more than 4
 order of calling these different methods inside the class, there is another function that I create to return the get_product_types() and navigate the filter bar to click on the filter
 buttons in order of each type, so we can then deal with the products loading faster per load phase.
 
+Here is an example of the filter by type, which we will use to our advantage:
+> ![image](https://user-images.githubusercontent.com/78024243/169665525-f040d3f6-d8bf-4246-85ff-bd96c87a1166.png)
+
 Once each loading phase happens per type, I have another function that returns the get_products_links() which using an xPath expression, we find the container that holds all the products,
 and then go into each product to return the HTML link under a_tag href for that product. So we end up creating a list link_list[] that holds each HTML for each product on that page from now we can
 use to individually load those pages and start to think about scraping the data from the individual pages.
@@ -76,6 +79,9 @@ so here's how I wanted to design my raw_data directory.
     """
 ```
 
+Here is an example page for a product:
+> ![image](https://user-images.githubusercontent.com/78024243/169665397-83fae8fc-75ce-402c-a8c9-ffbe3221f463.png)
+
 ## Milestone 4: Documentation and Testing
 
 First to scrutinise the code and refactor, which you naturally do over the course of the project anyway, when you realise you could do something different that will optimise workflow etc. Then Docstrings were added to the file to explain and readably convey my project where I chose the NumPy/SciPy style format. In addition to this and I didn't have to but I had a go at Typing, using Pythons built in typing library, which essentially just adds more understanding to the code as to the data types of variables, arguments and function returns. 
@@ -98,7 +104,7 @@ This is where we learn to operate AWS services to scalably store the data that w
 - IAM to create an admin User that we will use the credentials for when connecting to these services
 - EC2 instance to run and operate workflow on the cloud instead of locally (Milestone 7)
 
-To make this possible, I used the boto3 library to create a client that connects to S3 services, to upload the contents of raw_data, this is done individually for every product scraped, uploading with the 'path' as it would be locally and therefore as an object to S3 that can simulate that path.
+I actually split the cloud_data methods in a seperate class as it made sense to not add it to a web_scraper class. To make this possible, I used the boto3 library to create a client that connects to S3 services, to upload the contents of raw_data, this is done individually for every product scraped, uploading with the 'path' as it would be locally and therefore as an object to S3 that can simulate that path.
 Then using sqlalchemy and pandas, for reading/uploading to AWS RDS, where we connect to the database via creating an engine from sqlAlchemy. With 3 main methods that we need;
 - To upload/append a data_dict of a product to the table 'gymshark-database' to RDS
 - To read the table (printing the .head() and then the shape of the table to confirm for testing to check if they are being uploaded correctly)
@@ -116,6 +122,32 @@ Funny enough I skipped this milestone as it didn't concern me having already don
 
 ## Milestone 7: Make the scraping Scalable
 
+The check to see if we have scraped an image with reference to checking a products ID using an SQL statement call from the cloud_data file and RDS was created. This allowed the running of the project that won't rescrape and therefore won't create existing local and AWS data points of the products. 
+With this, the next step was to create an EC2 instance that would run the program so everything operated on the cloud instead of a local machine. To do this we first had to use Docker, to create an Image of the environment and libraries needed to run the program, so that we could then containerise the project and upload and run from an EC2 instance. 
+
+First we needed to make a DockerFile that ran through commands that would build the environment on an already prexisting image like python or an operating system, with then the necessary steps of setting up the rest of the environment by downloading the libraries and dependencies that the project needs. For example, firefox and the geckodriver had to first then be downloaded. Then we would pip install all the dependencies from a requirements.txt file that contains the libraries and their version that needs to be installed to run the scraper. Once built, we upload the image to Dockerhub, and then download the image onto the EC2 instance by pulling from dockerhub. We could then run the project on the EC2 instance without having to download and setup everything on there as it's all contained in a docker image. 
+
+I noticed that while running the scraper, a t2.micro (free tier) instance was simply not enough to perform the scraper project, so I upgraded to a t2.medium for more cpu and memory, as both was needed (cpu was running at near 100% with more memory needed also for loading lots of products on a single browser tab would use a lot of RAM)
+
+Here is me connected to my EC2 t2.medium instance and showing the web_scraper docker image is on there
+>![image](https://user-images.githubusercontent.com/78024243/169664660-61f6c6e7-de89-462f-8283-8f8eb817629b.png)
+
 ## Milestone 8: Monitoring and Alerting
 
+Once we are able to run the scraper on the EC2 instance, we would like a way to monitor and alert us with metrics that are viewable. This is where we take advantage of using Prometheus, originally designed for soundcloud and is now an open source widely used service that helps monitor and alert us using what is known as 'jobs' so we create a job that prometheus will then scrape metrics at intervals. We use 3 jobs for monitoring and alerting;
+- Prometheus (itself)
+- docker (metrics of docker containers, for example, containers that are running)
+- node (using node_exporter, these are hardware metrics, so in our case, hardware metrics from the EC2 instance)
+
+We can observe these metrics by connecting to a port from our EC2 instance Ip that we exposed to access these metrics and graphs, however we would like a nicer way of observing these graphs. This is where grafana comes in, which we set up on localhost, connecting to the IP:port of the EC2 instance, and all the prometheus graphs and metrics are then brought to a grafana dashboard, where you can create your own dashboard to show key metrics on essentially a front page, for important monitoring which will be necessary to understand on a larger scale project to operate large services.
+
+Here is the dashboard example of my EC2 instance on Grafana
+>![grafanaDashboard](https://user-images.githubusercontent.com/78024243/169665056-970f691d-d99a-40e6-8f62-2fe3bef94a71.png)
+
 ## Milestone 9: Setup a CI/CD pipeline for your Docker image
+
+a CI/CD pipeline is setup using github secrets and github actions, where everytime we make code changes and push to the 'main' branch on github for the web_scraping project, a github action will take place, that runs through some commands that essentially builds a new image based on the code changes and uploads a web_scraper:latest to dockerHub. This allows us to auto regulate our EC2 instance online, where using cronjobs, we schedule (I chose once a week) for the EC2 to pull the latest version of the web_scraper from dockerhub, then to run this image. So once a week, the web_scraper will scrape data that it already checks to scrape products that don't exist, therefore speaking, only products that gymshark add to their catalogue will be scraped, hence why I chose once a week as the time frame, as they will probably not add new products every day.
+
+## Final comments
+
+Really had fun on this project, learning and using libraries and services that were new to me gaining a lot of experience with data collection, in which long term, we can then do useful things with the data scraped. 
